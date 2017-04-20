@@ -20,18 +20,19 @@ import javafx.scene.control.TextArea;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+import search.Searching;
 import static sort.ComplexSort.mergeSort;
+import static sort.ComplexSort.quickSort;
 import static sort.SimpleSort.bubbleSort;
+import static sort.SimpleSort.insertionSort;
+import static sort.SimpleSort.selectionSort;
 
 /**
  * A JavaFX 8 program to help experiment with data structures and algorithms.
  *
- * For homework add a selection sort.
- *
- * @author John Phillips
+ * @author Gabe - with help
  */
 public class DataStructureTester extends Application {
-
     Stage pStage;
     TextArea taStatus;
     ScrollPane spStatus;
@@ -41,106 +42,107 @@ public class DataStructureTester extends Application {
     @Override
     public void start(Stage primaryStage) {
         pStage = primaryStage;
-
+        
         taData = new TextArea();
         spData = new ScrollPane(taData);
         spData.setFitToWidth(true);
         spData.setFitToHeight(true);
-
+        
         taStatus = new TextArea();
+        
         spStatus = new ScrollPane(taStatus);
         spStatus.setFitToWidth(true);
         spStatus.setPrefViewportHeight(50);
-//        spStatus.setFitToHeight(true);
 
         BorderPane borderPane = new BorderPane();
         borderPane.setTop(myMenuBar());
         borderPane.setCenter(spData);
         borderPane.setBottom(spStatus);
 
-//        Scene scene = new Scene(borderPane, 800, 500);
         Scene scene = new Scene(borderPane);
+        
         primaryStage.setTitle("Data Structures");
         primaryStage.setScene(scene);
-
-//        primaryStage.setMaximized(true);
-//        primaryStage.setFullScreen(true);
         primaryStage.hide();
         primaryStage.show();
     }
 
     /**
+     *
      * Displays a menu for this application.
      *
+     *
+     *
      * FYI: menu accelerator key codes are listed at:
+     *
      * https://docs.oracle.com/javase/8/javafx/api/javafx/scene/input/KeyCode.html
      *
+     *
+     *
      * @return
+     *
      */
     public MenuBar myMenuBar() {
+
         MenuBar myBar = new MenuBar();
+        
         final Menu fileMenu = new Menu("File");
         final Menu dataMenu = new Menu("Data");
         final Menu sortMenu = new Menu("Sort");
         final Menu searchMenu = new Menu("Search");
         final Menu helpMenu = new Menu("Help");
-
+        
         myBar.getMenus().addAll(fileMenu, dataMenu, sortMenu, searchMenu, helpMenu);
 
-        /**
-         * *********************************************************************
-         * File Menu Section
-         */
+ 
+//____________________________File Menu Section_________________________________
         MenuItem newCanvas = new MenuItem("New");
         newCanvas.setOnAction((ActionEvent e) -> {
             taData.clear();
         });
-        fileMenu.getItems().add(newCanvas);
 
+        fileMenu.getItems().add(newCanvas);
+        
         MenuItem open = new MenuItem("Open");
-        open.setOnAction((ActionEvent e) -> {
+        open.setOnAction((ActionEvent e) -> {           
             FileChooser fileChooser = new FileChooser();
             File file = fileChooser.showOpenDialog(pStage);
             if (file != null) {
                 readFile(file);
             }
         });
-        fileMenu.getItems().add(open);
 
+        fileMenu.getItems().add(open);
         MenuItem save = new MenuItem("Save");
         save.setOnAction((ActionEvent e) -> {
-
             FileChooser fileChooser = new FileChooser();
             File file = fileChooser.showSaveDialog(pStage);
             if (file != null) {
                 writeFile(file);
             }
         });
-        fileMenu.getItems().add(save);
 
+        fileMenu.getItems().add(save);
         MenuItem exit = new MenuItem("Exit");
         exit.setOnAction(e -> System.exit(0));
         fileMenu.getItems().add(exit);
 
-        /**
-         * *********************************************************************
-         * Data Menu Section
-         */
+
+//____________________________Data Menu Section_________________________________
         MenuItem miGenerateIntegers = new MenuItem("Generate Integers");
         miGenerateIntegers.setOnAction(e -> {
-//            for (int i = 0; i < 10000; i++) {
-//                taData.appendText("" + i + "\n");
-//            }
+
             StringBuilder sb = new StringBuilder();
             String newLine = "\n";
-            for (int i = 0; i < 100000; i++) {
+            for (int i = 0; i < 1000; i++) {
                 sb.append(i).append(newLine);
             }
             taData.setText(sb.toString());
         });
-        dataMenu.getItems().add(miGenerateIntegers);
 
+        dataMenu.getItems().add(miGenerateIntegers);
         MenuItem miRandom = new MenuItem("Randomize Data");
+
         miRandom.setOnAction(e -> {
             int[] nums = text2IntArray(taData.getText());
             Random gen = new Random();
@@ -152,38 +154,126 @@ public class DataStructureTester extends Application {
             }
             taData.setText(intArray2Text(nums));
         });
+        
         dataMenu.getItems().add(miRandom);
 
-        /**
-         * *********************************************************************
-         * Sort Menu Section
-         */
+
+//____________________________Sort Menu Section_________________________________
+
+        //-----------------BUBBLE SORT ASCENDING--------------------------------
         MenuItem miBubbleSortAsc = new MenuItem("Bubble Sort Ascending");
+
         miBubbleSortAsc.setOnAction(e -> {
             MyTimer.startMicroTime();
             int[] nums = text2IntArray(taData.getText());
             taStatus.setText("Converting text to array took " + MyTimer.stopMicroTime() + "us");
+            
             MyTimer.startMicroTime();
             bubbleSort(nums, "A");
             taStatus.appendText("\nSort finished in " + MyTimer.stopMicroTime() + "us");
             taData.setText(intArray2Text(nums));
         });
         sortMenu.getItems().add(miBubbleSortAsc);
-
+        
+        //-----------------BUBBLE SORT DESCENDING--------------------------------
         MenuItem miBubbleSortDsc = new MenuItem("Bubble Sort Descending");
+
         miBubbleSortDsc.setOnAction(e -> {
             MyTimer.startMicroTime();
             int[] nums = text2IntArray(taData.getText());
             taStatus.setText("Converting text to array took " + MyTimer.stopMicroTime() + "us");
+
             MyTimer.startMicroTime();
             bubbleSort(nums, "D");
             taStatus.appendText("\nSort finished in " + MyTimer.stopMicroTime() + "us");
+            
             MyTimer.startMicroTime();
             taData.setText(intArray2Text(nums));
             taStatus.appendText("\nArray to text finished in " + MyTimer.stopMicroTime() + "us");
         });
         sortMenu.getItems().add(miBubbleSortDsc);
+       
+        //---------------SELECTION SORT ASCENDING-------------------------------
+        MenuItem miSelectionSortAsc = new MenuItem("Selection Sort Ascending");
+        miSelectionSortAsc.setOnAction(e -> {
+            MyTimer.startMicroTime();
+            int[] nums = text2IntArray(taData.getText());
+            taStatus.setText("Converting text to array took " + MyTimer.stopMicroTime() + "us");
+            MyTimer.startMicroTime();
+            selectionSort(nums, "A");
+            taStatus.appendText("\nSort finished in " + MyTimer.stopMicroTime() + "us");
+            taData.setText(intArray2Text(nums));
+        });
+        sortMenu.getItems().add(miSelectionSortAsc);
 
+        //--------------SELECTION SORT DESCENDING-------------------------------
+        MenuItem miSelectionSortDsc = new MenuItem("Selection Sort Descending");
+        miSelectionSortDsc.setOnAction(e -> {
+            MyTimer.startMicroTime();
+            int[] nums = text2IntArray(taData.getText());
+            taStatus.setText("Converting text to array took " + MyTimer.stopMicroTime() + "us");
+            MyTimer.startMicroTime();
+            selectionSort(nums, "D");
+            taStatus.appendText("\nSort finished in " + MyTimer.stopMicroTime() + "us");
+            MyTimer.startMicroTime();
+            taData.setText(intArray2Text(nums));
+            taStatus.appendText("\nArray to text finished in " + MyTimer.stopMicroTime() + "us");
+        });
+        sortMenu.getItems().add(miSelectionSortDsc);
+        
+        //--------------INSERTION SORT ASCENDING--------------------------------
+        MenuItem miInsertionSortAsc = new MenuItem("Insertion Sort Ascending");
+        miInsertionSortAsc.setOnAction(e -> {
+            MyTimer.startMicroTime();
+            int[] nums = text2IntArray(taData.getText());
+            taStatus.setText("Converting text to array took " + MyTimer.stopMicroTime() + "us");
+            MyTimer.startMicroTime();
+            insertionSort(nums, "A");
+            taStatus.appendText("\nSort finished in " + MyTimer.stopMicroTime() + "us");
+            taData.setText(intArray2Text(nums));
+        });
+        sortMenu.getItems().add(miInsertionSortAsc);
+
+        //--------------INSERTION SORT DESCENDING-------------------------------
+        MenuItem miInsertionSortDsc = new MenuItem("Insertion Sort Descending");
+        miInsertionSortDsc.setOnAction(e -> {
+            MyTimer.startMicroTime();
+            int[] nums = text2IntArray(taData.getText());
+            taStatus.setText("Converting text to array took " + MyTimer.stopMicroTime() + "us");
+            MyTimer.startMicroTime();
+            insertionSort(nums, "D");
+            taStatus.appendText("\nSort finished in " + MyTimer.stopMicroTime() + "us");
+            taData.setText(intArray2Text(nums));
+        });
+        sortMenu.getItems().add(miInsertionSortDsc);
+        
+        //--------------QUICK SORT ASCENDING------------------------------------
+        MenuItem miQuickSortAsc = new MenuItem("Quick Sort Ascending");
+        miQuickSortAsc.setOnAction(e -> {
+            MyTimer.startMicroTime();
+            int[] nums = text2IntArray(taData.getText());
+            taStatus.setText("Converting text to array took " + MyTimer.stopMicroTime() + "us");
+            MyTimer.startMicroTime();
+            quickSort(nums, 0, nums.length-1, "A");
+            taStatus.appendText("\nSort finished in " + MyTimer.stopMicroTime() + "us");
+            taData.setText(intArray2Text(nums));
+        });
+        sortMenu.getItems().add(miQuickSortAsc);
+
+        //--------------QUICK SORT DESCENDING-----------------------------------
+        MenuItem miQuickSortDsc = new MenuItem("Quick Sort Descending");
+        miQuickSortDsc.setOnAction(e -> {
+            MyTimer.startMicroTime();
+            int[] nums = text2IntArray(taData.getText());
+            taStatus.setText("Converting text to array took " + MyTimer.stopMicroTime() + "us");
+            MyTimer.startMicroTime();
+            quickSort(nums, 0, nums.length-1, "D");
+            taStatus.appendText("\nSort finished in " + MyTimer.stopMicroTime() + "us");
+            taData.setText(intArray2Text(nums));
+        });
+        sortMenu.getItems().add(miQuickSortDsc);
+        
+        //-----------------MERGE SORT ASCENDING---------------------------------
         MenuItem miMergeSortAsc = new MenuItem("Merge Sort Ascending");
         miMergeSortAsc.setOnAction(e -> {
             MyTimer.startMicroTime();
@@ -197,41 +287,54 @@ public class DataStructureTester extends Application {
             taStatus.appendText("\nArray to text finished in " + MyTimer.stopMicroTime() + "us");
         });
         sortMenu.getItems().add(miMergeSortAsc);
-
+        
+        //-----------------MERGE SORT DESCENDING---------------------------------
         MenuItem miMergeSortDsc = new MenuItem("Merge Sort Descending");
+        miMergeSortAsc.setOnAction(e -> {
+            MyTimer.startMicroTime();
+            int[] nums = text2IntArray(taData.getText());
+            taStatus.setText("Converting text to array took " + MyTimer.stopMicroTime() + "us");
+            MyTimer.startMicroTime();
+            mergeSort(nums, "D");
+            taStatus.appendText("\nSort finished in " + MyTimer.stopMicroTime() + "us");
+            taData.setText(intArray2Text(nums));
+        });
         sortMenu.getItems().add(miMergeSortDsc);
 
-        /**
-         * *********************************************************************
-         * Search Menu Section
-         */
-        MenuItem miSequentialSearch = new MenuItem("Sequential Search");
-        searchMenu.getItems().add(miSequentialSearch);
 
+//____________________________Search Menu Section_______________________________
+        MenuItem miSequentialSearch = new MenuItem("Sequential Search");
+        miSequentialSearch.setOnAction(e -> {
+            MyTimer.startMicroTime();
+            int[] nums = text2IntArray(taData.getText());
+            taStatus.setText("Converting text to array took " + MyTimer.stopMicroTime() + "us");
+            Scanner sc = new Scanner(System.in);
+            taStatus.appendText("\nEnter number to search for: ");
+            int key = sc.nextInt();
+            MyTimer.startMicroTime();
+            taStatus.appendText("\nSearch finished in " + MyTimer.stopMicroTime() + "us");
+            taStatus.appendText("\n" + key + "is at " + Searching.sequentialSearch(nums, key));
+        });
+        searchMenu.getItems().add(miSequentialSearch);
+        
         MenuItem miBinarySearch = new MenuItem("Binary Search");
         searchMenu.getItems().add(miBinarySearch);
 
-        /**
-         * *********************************************************************
-         * Help Menu Section
-         */
+//____________________________Help Menu Section_________________________________
         MenuItem about = new MenuItem("About");
         about.setOnAction((ActionEvent e) -> {
-            String message = "DATA STRUCTURES AND ALGORITHMS\n";
+            String message = "DATA STRUCTURES AND ALGORITHMS: featuring different sort methods.\n";
             Alert alert = new Alert(Alert.AlertType.INFORMATION, message);
             alert.setTitle("About");
-            alert.setHeaderText("v1.0 by John Phillips");
+            alert.setHeaderText("v1.5 by The Gabe");
             alert.showAndWait();
         });
         helpMenu.getItems().add(about);
-
         return myBar;
     }
 
-    /**
-     * *************************************************************************
-     * File helper methods
-     */
+    
+//____________________________File helper methods_________________________________
     private void readFile(File myFile) {
         int y = 0;
         try (Scanner sc = new Scanner(myFile)) {
@@ -239,6 +342,7 @@ public class DataStructureTester extends Application {
             while (sc.hasNextLine()) {
                 taData.appendText(sc.nextLine() + "\n");
             }
+            
         } catch (FileNotFoundException ex) {
             Logger.getLogger(DataStructureTester.class
                     .getName()).log(Level.SEVERE, null, ex);
@@ -275,7 +379,9 @@ public class DataStructureTester extends Application {
     }
 
     /**
+     *
      * @param args the command line arguments
+     *
      */
     public static void main(String[] args) {
         launch(args);
